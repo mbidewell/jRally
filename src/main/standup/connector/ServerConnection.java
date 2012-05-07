@@ -83,6 +83,31 @@ public interface ServerConnection {
  	public StoryList retrieveStoriesForIteration(String iterationName)
  		throws IOException, ClientProtocolException, ConnectorException,
  		       TransformerException;
+ 	
+ 	/**
+ 	 * Retrieve a list of stories for a named iteration and project.
+ 	 * 
+ 	 * This method fetches all user stories that are currently assigned to
+ 	 * the specified iteration and project.  Most Agile tools separate backlog items and
+ 	 * defects into separate classes.  The domain model differs -- defects and
+ 	 * backlog items are both considered to be stories so you might consider
+ 	 * the result list to be heterogeneous.
+ 	 * 
+ 	 * @param iterationName  retrieve stories associated with this iteration
+ 	 * 
+ 	 * @return A list of user stories associated with the iteration.
+ 	 * 
+ 	 * @throws IOException when a low-level IO operation fails
+ 	 * @throws ClientProtocolException when an error occurs in the protocol
+ 	 *         layer - e.g., a non-successful HTTP result code is returned 
+ 	 * @throws ConnectorException when an error occurs in the connector
+ 	 *         layer other than either a transport or IO layer failure
+ 	 * @throws TransformerException when an XSLT exception is thrown while
+ 	 *         transforming the backend result into the model.
+ 	 */
+ 	public StoryList retrieveStoriesForProjectIteration(String project, String iterationName)
+ 		throws IOException, ClientProtocolException, ConnectorException,
+ 		       TransformerException;
 
  	/**
  	 * Retrieve a list of stories by their backend identifier.

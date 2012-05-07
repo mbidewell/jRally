@@ -295,6 +295,42 @@ public class ServerConnection
 		}
 		return storyList;
 	}
+	
+
+	/* (non-Javadoc)
+	 * @see standup.connector.ServerConnection#retrieveStoriesForProjectIteration(java.lang.String, java.lang.String)
+	 */
+	@Override
+	public StoryList retrieveStoriesForProjectIteration(String project, String iteration)
+		throws IOException, ClientProtocolException, ConnectorException,
+		       TransformerException
+	{
+		StoryList storyList = this.standupFactory.createStoryList();
+		try {
+			NDC.push("retrieving stories for iteration "+iteration);
+			QueryResultType result = retrieveURI(QueryResultType.class,
+			           buildQuery("hierarchicalrequirement", "AND",
+			        		      String.format("Project.Name = \"%s\"", project),
+			        		      String.format("Iteration.Name = \"%s\"",iteration)));
+			
+			processQueryResult(storyList, result);
+			NDC.pop();
+
+			NDC.push("retrieving defects for iteration "+iteration);
+			result = retrieveURI(QueryResultType.class,
+			           buildQuery("defect", "AND",
+			        		      String.format("Project.Name = \"%s\"", project),
+			        		      String.format("Iteration.Name = \"%s\"",iteration)));			
+			processQueryResult(storyList, result);
+		} catch (JAXBException e) {
+			logger.error("JAXB related error while processing iteration "+iteration, e);
+		} catch (URISyntaxException e) {
+			logger.error(e.getClass().getCanonicalName(), e);
+		} finally {
+			NDC.pop();
+		}
+		return storyList;
+	}
 
 	/* (non-Javadoc)
 	 * @see standup.connector.ServerConnection#retrieveTasks(standup.xml.StoryList)

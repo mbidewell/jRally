@@ -313,16 +313,16 @@
 		description="===> run the command-line application"
 		depends="jar">
 		<java fork="true"
-			classname="standup.application.RetrieveStoriesByID"
+			classname="standup.application.RetrieveStoriesForProjectIteration"
 			classpathref="run.classpath">
 			<!--arg value="-v"/-->
 			<arg value="-u"/> <arg value="${rally.user}"/>
 			<arg value="-p"/> <arg value="${rally.password}"/>
-			<arg value="-o"/> <arg value="retrieve-stories.pdf"/>
-			<arg value="US4270"/>
-			<arg value="US4182"/>
-			<arg value="US4188"/>
-			<arg value="US2888"/>
+			<arg value="-s"/> <arg value="retrieve-stories.pdf"/>
+			<arg value="-t"/> <arg value="retrieve-tasks.pdf"/>
+			<arg value="-v"/>
+			<arg value="Adrenalin SeaDAC Renderer"/>
+			<arg value="Iteration 1"/>
 		</java>
 	</target>
 
