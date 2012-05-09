@@ -18,7 +18,7 @@
 		<dependency
 			org="org.apache.commons"
 			name="commons-lang"
-			rev="[2.4,)"/>
+			rev="[3.1,)"/>
 
 		<dependency
 			org="org.apache.httpcomponents"
