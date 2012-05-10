@@ -76,7 +76,8 @@
 		<dependency
 			org="javax.faces"
 			name="jsf-api"
-			rev="2.0"/>
+			rev="2.0"
+			conf="*->*, !javadoc"/>
 
 	</dependencies>
 </ivy-module>
