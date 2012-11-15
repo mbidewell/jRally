@@ -112,6 +112,7 @@
           <xsd:element name="Notes" type="xsd:string" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Owner" type="UserType" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Project" type="ProjectType" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="Ready" type="xsd:boolean" minOccurs="0" maxOccurs="1" />
           <xsd:element name="RevisionHistory" type="RevisionHistoryType" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Tags" type="ArtifactTagsType" minOccurs="0" maxOccurs="1" />
         </xsd:sequence>
@@ -141,11 +142,13 @@
     <xsd:complexContent>
       <xsd:extension base="WorkspaceDomainObjectType">
         <xsd:sequence>
+          <xsd:element name="Artifact" type="ArtifactType" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Content" type="AttachmentContentType" minOccurs="0" maxOccurs="1" />
           <xsd:element name="ContentType" type="xsd:string" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Description" type="xsd:string" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Name" type="xsd:string" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Size" type="xsd:long" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="TestCaseResult" type="TestCaseResultType" minOccurs="0" maxOccurs="1" />
           <xsd:element name="User" type="UserType" minOccurs="0" maxOccurs="1" />
         </xsd:sequence>
       </xsd:extension>
@@ -236,15 +239,22 @@
       <xsd:element name="Build" type="BuildType" minOccurs="0" maxOccurs="unbounded" />
     </xsd:sequence>
   </xsd:complexType>
+  <xsd:complexType name="BuildDefinitionProjectsType">
+    <xsd:sequence>
+      <xsd:element name="Project" type="ProjectType" minOccurs="0" maxOccurs="unbounded" />
+    </xsd:sequence>
+  </xsd:complexType>
   <xsd:complexType name="BuildDefinitionType">
     <xsd:complexContent>
       <xsd:extension base="WorkspaceDomainObjectType">
         <xsd:sequence>
           <xsd:element name="Builds" type="BuildDefinitionBuildsType" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Description" type="xsd:string" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="LastBuild" type="BuildType" minOccurs="0" maxOccurs="1" />
           <xsd:element name="LastStatus" type="xsd:string" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Name" type="xsd:string" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Project" type="ProjectType" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="Projects" type="BuildDefinitionProjectsType" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Uri" type="xsd:string" minOccurs="0" maxOccurs="1" />
         </xsd:sequence>
       </xsd:extension>
@@ -303,6 +313,7 @@
           <xsd:element name="Changes" type="ChangesetChangesType" minOccurs="0" maxOccurs="1" />
           <xsd:element name="CommitTimestamp" type="xsd:dateTime" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Message" type="xsd:string" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="Name" type="xsd:string" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Revision" type="xsd:string" minOccurs="0" maxOccurs="1" />
           <xsd:element name="SCMRepository" type="SCMRepositoryType" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Uri" type="xsd:string" minOccurs="0" maxOccurs="1" />
@@ -366,18 +377,21 @@
           <xsd:element name="AffectsDoc" type="xsd:boolean" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Attachments" type="DefectAttachmentsType" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Blocked" type="xsd:boolean" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="BlockedReason" type="xsd:string" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Blocker" type="BlockerType" minOccurs="0" maxOccurs="1" />
           <xsd:element name="ClosedDate" type="xsd:dateTime" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Duplicates" type="DefectDuplicatesType" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Environment" type="xsd:string" minOccurs="0" maxOccurs="1" />
           <xsd:element name="FixedInBuild" type="xsd:string" minOccurs="0" maxOccurs="1" />
           <xsd:element name="FoundInBuild" type="xsd:string" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="InProgressDate" type="xsd:dateTime" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Iteration" type="IterationType" minOccurs="0" maxOccurs="1" />
           <xsd:element name="OpenedDate" type="xsd:dateTime" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Package" type="xsd:string" minOccurs="0" maxOccurs="1" />
           <xsd:element name="PlanEstimate" type="xsd:double" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Priority" type="xsd:string" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Rank" type="xsd:decimal" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="Recycled" type="xsd:boolean" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Release" type="ReleaseType" minOccurs="0" maxOccurs="1" />
           <xsd:element name="ReleaseNote" type="xsd:boolean" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Requirement" type="RequirementType" minOccurs="0" maxOccurs="1" />
@@ -397,8 +411,10 @@
           <xsd:element name="Tasks" type="DefectTasksType" minOccurs="0" maxOccurs="1" />
           <xsd:element name="TestCase" type="TestCaseType" minOccurs="0" maxOccurs="1" />
           <xsd:element name="TestCaseResult" type="TestCaseResultType" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="TestCaseStatus" type="xsd:string" minOccurs="0" maxOccurs="1" />
           <xsd:element name="TestCases" type="DefectTestCasesType" minOccurs="0" maxOccurs="1" />
           <xsd:element name="VerifiedInBuild" type="xsd:string" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="Component" type="xsd:string" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Jira" type="WebLink" minOccurs="0" maxOccurs="1" />
           <xsd:element name="KanbanState" type="xsd:string" minOccurs="0" maxOccurs="1" />
         </xsd:sequence>
@@ -428,8 +444,11 @@
           <xsd:element name="AcceptedDate" type="xsd:dateTime" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Attachments" type="DefectSuiteAttachmentsType" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Blocked" type="xsd:boolean" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="BlockedReason" type="xsd:string" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Blocker" type="BlockerType" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="DefectStatus" type="xsd:string" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Defects" type="DefectSuiteDefectsType" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="InProgressDate" type="xsd:dateTime" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Iteration" type="IterationType" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Package" type="xsd:string" minOccurs="0" maxOccurs="1" />
           <xsd:element name="PlanEstimate" type="xsd:double" minOccurs="0" maxOccurs="1" />
@@ -492,14 +511,20 @@
         <xsd:sequence>
           <xsd:element name="AcceptedDate" type="xsd:dateTime" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Blocked" type="xsd:boolean" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="BlockedReason" type="xsd:string" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Blocker" type="BlockerType" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Children" type="HierarchicalRequirementChildrenType" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="DefectStatus" type="xsd:string" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Defects" type="HierarchicalRequirementDefectsType" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="DirectChildrenCount" type="xsd:long" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="HasParent" type="xsd:boolean" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="InProgressDate" type="xsd:dateTime" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Iteration" type="IterationType" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Parent" type="HierarchicalRequirementType" minOccurs="0" maxOccurs="1" />
           <xsd:element name="PlanEstimate" type="xsd:double" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Predecessors" type="HierarchicalRequirementPredecessorsType" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Rank" type="xsd:decimal" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="Recycled" type="xsd:boolean" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Release" type="ReleaseType" minOccurs="0" maxOccurs="1" />
           <xsd:element name="ScheduleState" type="xsd:string" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Successors" type="HierarchicalRequirementSuccessorsType" minOccurs="0" maxOccurs="1" />
@@ -508,8 +533,13 @@
           <xsd:element name="TaskRemainingTotal" type="xsd:double" minOccurs="0" maxOccurs="1" />
           <xsd:element name="TaskStatus" type="xsd:string" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Tasks" type="HierarchicalRequirementTasksType" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="TestCaseStatus" type="xsd:string" minOccurs="0" maxOccurs="1" />
           <xsd:element name="TestCases" type="HierarchicalRequirementTestCasesType" minOccurs="0" maxOccurs="1" />
-          <xsd:element name="FeatureRequestState" type="xsd:string" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="Component" type="xsd:string" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="FRCustomerName" type="xsd:string" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="FRProjectReference" type="xsd:string" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="FRState" type="xsd:string" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="FRSubmissionDate" type="xsd:dateTime" minOccurs="0" maxOccurs="1" />
           <xsd:element name="KanbanState" type="xsd:string" minOccurs="0" maxOccurs="1" />
         </xsd:sequence>
       </xsd:extension>
@@ -560,20 +590,17 @@
       </xsd:extension>
     </xsd:complexContent>
   </xsd:complexType>
-  <xsd:element name="Program" type="ProgramType" />
-  <xsd:complexType name="ProgramReleasesType">
-    <xsd:sequence>
-      <xsd:element name="Release" type="ReleaseType" minOccurs="0" maxOccurs="unbounded" />
-    </xsd:sequence>
-  </xsd:complexType>
-  <xsd:complexType name="ProgramType">
+  <xsd:element name="Preference" type="PreferenceType" />
+  <xsd:complexType name="PreferenceType">
     <xsd:complexContent>
-      <xsd:extension base="WorkspaceDomainObjectType">
+      <xsd:extension base="PersistableObjectType">
         <xsd:sequence>
-          <xsd:element name="Description" type="xsd:string" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="AppId" type="xsd:long" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Name" type="xsd:string" minOccurs="0" maxOccurs="1" />
-          <xsd:element name="Owner" type="UserType" minOccurs="0" maxOccurs="1" />
-          <xsd:element name="Releases" type="ProgramReleasesType" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="Project" type="ProjectType" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="User" type="UserType" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="Value" type="xsd:string" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="Workspace" type="WorkspaceType" minOccurs="0" maxOccurs="1" />
         </xsd:sequence>
       </xsd:extension>
     </xsd:complexContent>
@@ -587,6 +614,11 @@
   <xsd:complexType name="ProjectChildrenType">
     <xsd:sequence>
       <xsd:element name="Project" type="ProjectType" minOccurs="0" maxOccurs="unbounded" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ProjectEditorsType">
+    <xsd:sequence>
+      <xsd:element name="User" type="UserType" minOccurs="0" maxOccurs="unbounded" />
     </xsd:sequence>
   </xsd:complexType>
   <xsd:complexType name="ProjectIterationsType">
@@ -611,6 +643,7 @@
           <xsd:element name="BuildDefinitions" type="ProjectBuildDefinitionsType" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Children" type="ProjectChildrenType" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Description" type="xsd:string" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="Editors" type="ProjectEditorsType" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Iterations" type="ProjectIterationsType" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Name" type="xsd:string" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Notes" type="xsd:string" minOccurs="0" maxOccurs="1" />
@@ -707,14 +740,39 @@
     </xsd:complexContent>
   </xsd:complexType>
   <xsd:element name="SCMRepository" type="SCMRepositoryType" />
+  <xsd:complexType name="SCMRepositoryProjectsType">
+    <xsd:sequence>
+      <xsd:element name="Project" type="ProjectType" minOccurs="0" maxOccurs="unbounded" />
+    </xsd:sequence>
+  </xsd:complexType>
   <xsd:complexType name="SCMRepositoryType">
     <xsd:complexContent>
       <xsd:extension base="WorkspaceDomainObjectType">
         <xsd:sequence>
           <xsd:element name="Description" type="xsd:string" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Name" type="xsd:string" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="Projects" type="SCMRepositoryProjectsType" minOccurs="0" maxOccurs="1" />
           <xsd:element name="SCMType" type="xsd:string" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Uri" type="xsd:string" minOccurs="0" maxOccurs="1" />
+        </xsd:sequence>
+      </xsd:extension>
+    </xsd:complexContent>
+  </xsd:complexType>
+  <xsd:element name="ScopedAttributeDefinition" type="ScopedAttributeDefinitionType" />
+  <xsd:complexType name="ScopedAttributeDefinitionType">
+    <xsd:complexContent>
+      <xsd:extension base="WorkspaceDomainObjectType">
+        <xsd:sequence>
+          <xsd:element name="AttributeType" type="xsd:string" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="ChildProjectHiddenCount" type="xsd:long" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="ChildProjectVisibleCount" type="xsd:long" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="Constrained" type="xsd:boolean" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="Custom" type="xsd:boolean" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="Hidden" type="xsd:boolean" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="Name" type="xsd:string" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="Required" type="xsd:boolean" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="SharedAcrossWorkItems" type="xsd:boolean" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="VisibilityOnChildProjects" type="xsd:string" minOccurs="0" maxOccurs="1" />
         </xsd:sequence>
       </xsd:extension>
     </xsd:complexContent>
@@ -729,13 +787,18 @@
     <xsd:complexContent>
       <xsd:extension base="PersistableObjectType">
         <xsd:sequence>
+          <xsd:element name="ExpirationDate" type="xsd:dateTime" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="MaximumProjects" type="xsd:long" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Modules" type="xsd:string" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Name" type="xsd:string" minOccurs="0" maxOccurs="1" />
           <xsd:element name="PasswordExpirationDays" type="xsd:long" minOccurs="0" maxOccurs="1" />
           <xsd:element name="PreviousPasswordCount" type="xsd:long" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="ProjectHierarchyEnabled" type="xsd:boolean" minOccurs="0" maxOccurs="1" />
           <xsd:element name="RevisionHistory" type="RevisionHistoryType" minOccurs="0" maxOccurs="1" />
           <xsd:element name="SessionTimeoutSeconds" type="xsd:long" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="StoryHierarchyEnabled" type="xsd:boolean" minOccurs="0" maxOccurs="1" />
           <xsd:element name="SubscriptionID" type="xsd:long" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="SubscriptionType" type="xsd:string" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Workspaces" type="SubscriptionWorkspacesType" minOccurs="0" maxOccurs="1" />
         </xsd:sequence>
       </xsd:extension>
@@ -746,6 +809,7 @@
     <xsd:complexContent>
       <xsd:extension base="WorkspaceDomainObjectType">
         <xsd:sequence>
+          <xsd:element name="Archived" type="xsd:boolean" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Name" type="xsd:string" minOccurs="0" maxOccurs="1" />
         </xsd:sequence>
       </xsd:extension>
@@ -764,9 +828,12 @@
           <xsd:element name="Actuals" type="xsd:double" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Attachments" type="TaskAttachmentsType" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Blocked" type="xsd:boolean" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="BlockedReason" type="xsd:string" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Estimate" type="xsd:double" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Iteration" type="IterationType" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="Project" type="ProjectType" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Rank" type="xsd:decimal" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="Recycled" type="xsd:boolean" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Release" type="ReleaseType" minOccurs="0" maxOccurs="1" />
           <xsd:element name="State" type="xsd:string" minOccurs="0" maxOccurs="1" />
           <xsd:element name="TaskIndex" type="xsd:long" minOccurs="0" maxOccurs="1" />
@@ -797,6 +864,7 @@
       <xsd:extension base="ArtifactType">
         <xsd:sequence>
           <xsd:element name="Attachments" type="TestCaseAttachmentsType" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="DefectStatus" type="xsd:string" minOccurs="0" maxOccurs="1" />
           <xsd:element name="LastBuild" type="xsd:string" minOccurs="0" maxOccurs="1" />
           <xsd:element name="LastRun" type="xsd:dateTime" minOccurs="0" maxOccurs="1" />
           <xsd:element name="LastVerdict" type="xsd:string" minOccurs="0" maxOccurs="1" />
@@ -806,6 +874,7 @@
           <xsd:element name="PostConditions" type="xsd:string" minOccurs="0" maxOccurs="1" />
           <xsd:element name="PreConditions" type="xsd:string" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Priority" type="xsd:string" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="Recycled" type="xsd:boolean" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Results" type="TestCaseResultsType" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Risk" type="xsd:string" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Steps" type="TestCaseStepsType" minOccurs="0" maxOccurs="1" />
@@ -902,14 +971,20 @@
         <xsd:sequence>
           <xsd:element name="Abstract" type="xsd:boolean" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Attributes" type="TypeDefinitionAttributesType" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="Creatable" type="xsd:boolean" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Deletable" type="xsd:boolean" minOccurs="0" maxOccurs="1" />
           <xsd:element name="DisplayName" type="xsd:string" minOccurs="0" maxOccurs="1" />
           <xsd:element name="ElementName" type="xsd:string" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="IDPrefix" type="xsd:string" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Name" type="xsd:string" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Note" type="xsd:string" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="Ordinal" type="xsd:long" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Parent" type="TypeDefinitionType" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Queryable" type="xsd:boolean" minOccurs="0" maxOccurs="1" />
           <xsd:element name="ReadOnly" type="xsd:boolean" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="Restorable" type="xsd:boolean" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="RevisionHistory" type="RevisionHistoryType" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="TypePath" type="xsd:string" minOccurs="0" maxOccurs="1" />
         </xsd:sequence>
       </xsd:extension>
     </xsd:complexContent>
@@ -933,12 +1008,15 @@
           <xsd:element name="DisplayName" type="xsd:string" minOccurs="0" maxOccurs="1" />
           <xsd:element name="EmailAddress" type="xsd:string" minOccurs="0" maxOccurs="1" />
           <xsd:element name="FirstName" type="xsd:string" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="LandingPage" type="xsd:string" minOccurs="0" maxOccurs="1" />
           <xsd:element name="LastName" type="xsd:string" minOccurs="0" maxOccurs="1" />
           <xsd:element name="LastPasswordUpdateDate" type="xsd:dateTime" minOccurs="0" maxOccurs="1" />
           <xsd:element name="MiddleName" type="xsd:string" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="OnpremLdapUsername" type="xsd:string" minOccurs="0" maxOccurs="1" />
           <xsd:element name="RevisionHistory" type="RevisionHistoryType" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Role" type="xsd:string" minOccurs="0" maxOccurs="1" />
           <xsd:element name="ShortDisplayName" type="xsd:string" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="SubscriptionAdmin" type="xsd:boolean" minOccurs="0" maxOccurs="1" />
           <xsd:element name="TeamMemberships" type="UserTeamMembershipsType" minOccurs="0" maxOccurs="1" />
           <xsd:element name="UserName" type="xsd:string" minOccurs="0" maxOccurs="1" />
           <xsd:element name="UserPermissions" type="UserUserPermissionsType" minOccurs="0" maxOccurs="1" />
@@ -1040,6 +1118,7 @@
           <xsd:element name="BuildandChangesetEnabled" type="xsd:boolean" minOccurs="0" maxOccurs="1" />
           <xsd:element name="DateFormat" type="xsd:string" minOccurs="0" maxOccurs="1" />
           <xsd:element name="DateTimeFormat" type="xsd:string" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="DragDropRankingEnabled" type="xsd:boolean" minOccurs="0" maxOccurs="1" />
           <xsd:element name="IterationEstimateUnitName" type="xsd:string" minOccurs="0" maxOccurs="1" />
           <xsd:element name="ReleaseEstimateUnitName" type="xsd:string" minOccurs="0" maxOccurs="1" />
           <xsd:element name="TaskUnitName" type="xsd:string" minOccurs="0" maxOccurs="1" />
