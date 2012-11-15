@@ -102,10 +102,11 @@
 	<target name="xml-sources"
 		description="===> generate JAXB sources from the schemas">
 		<mkdir dir="${generated.src.dir}"/>
-		<xjc schema="${schemas.dir}/rally-1.21.xsd" target="2.0" removeOldOutput="true"
+		<xjc schema="${schemas.dir}/rally-1.39.xsd" target="2.0" removeOldOutput="true"
 			destdir="${generated.src.dir}" package="com.rallydev.xml">
-			<depends dir="${schemas.dir}" includes="rally-1.21.xsd"/>
+			<depends dir="${schemas.dir}" includes="rally-1.39.xsd"/>
 			<produces dir="${generated.src.dir}/com/rallydev/xml" includes="**/*.java"/>
+			<arg value="-nv"/>
 		</xjc>
 		<xjc schema="${schemas.dir}/story-list.xsd" target="2.0" removeOldOutput="true"
 			destdir="${generated.src.dir}" package="standup.xml">
