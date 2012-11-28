@@ -154,7 +154,8 @@
 		depends="schema-docs,api-docs"/>
 
 	<target name="eclipse"
-		description="===> generate an Eclipse project">
+		description="===> generate an Eclipse project"
+	  depends="update-ivy">
 		<mkdir dir="${generated.src.dir}"/>
 		<mkdir dir="${ivy.lib.dir}"/>
 		<eclipse mode="java" updatealways="true">
@@ -174,7 +175,7 @@
 
 	<target name="compile"
 		description="===> compile all classes"
-		depends="xml-sources">
+		depends="xml-sources,update-ivy">
 		<mkdir dir="${classes.dir}"/>
 		<javac target="1.6" debug="true"
 			destdir="${classes.dir}" includeantruntime="false">
