@@ -15,12 +15,14 @@
 	</xsl:template>
 
 	<xsl:template match="ul|ol">
-		<fo:block-container>
-			<fo:list-block provisional-distance-between-starts="15mm"
-				provisional-label-separation="5mm">
-				<xsl:apply-templates/>
-			</fo:list-block>
-		</fo:block-container>
+		<xsl:if test="count(li) &gt; 0">
+			<fo:block-container>
+				<fo:list-block provisional-distance-between-starts="15mm"
+				        	provisional-label-separation="5mm">
+					<xsl:apply-templates/>
+				</fo:list-block>
+			</fo:block-container>
+		</xsl:if>
 	</xsl:template>
 
 	<xsl:template match="ul/li">
