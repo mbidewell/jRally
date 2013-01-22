@@ -558,8 +558,8 @@
           <xsd:element name="EndDate" type="xsd:dateTime" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Name" type="xsd:string" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Notes" type="xsd:string" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="PlannedVelocity" type="xsd:double" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Project" type="ProjectType" minOccurs="0" maxOccurs="1" />
-          <xsd:element name="Resources" type="xsd:double" minOccurs="0" maxOccurs="1" />
           <xsd:element name="RevisionHistory" type="RevisionHistoryType" minOccurs="0" maxOccurs="1" />
           <xsd:element name="StartDate" type="xsd:dateTime" minOccurs="0" maxOccurs="1" />
           <xsd:element name="State" type="xsd:string" minOccurs="0" maxOccurs="1" />
@@ -674,10 +674,10 @@
           <xsd:element name="GrossEstimateConversionRatio" type="xsd:double" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Name" type="xsd:string" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Notes" type="xsd:string" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="PlannedVelocity" type="xsd:double" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Project" type="ProjectType" minOccurs="0" maxOccurs="1" />
           <xsd:element name="ReleaseDate" type="xsd:dateTime" minOccurs="0" maxOccurs="1" />
           <xsd:element name="ReleaseStartDate" type="xsd:dateTime" minOccurs="0" maxOccurs="1" />
-          <xsd:element name="Resources" type="xsd:double" minOccurs="0" maxOccurs="1" />
           <xsd:element name="RevisionHistory" type="RevisionHistoryType" minOccurs="0" maxOccurs="1" />
           <xsd:element name="State" type="xsd:string" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Theme" type="xsd:string" minOccurs="0" maxOccurs="1" />
@@ -718,6 +718,7 @@
       <xsd:extension base="WorkspaceDomainObjectType">
         <xsd:sequence>
           <xsd:element name="Description" type="xsd:string" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="RevisionHistory" type="RevisionHistoryType" minOccurs="0" maxOccurs="1" />
           <xsd:element name="RevisionNumber" type="xsd:long" minOccurs="0" maxOccurs="1" />
           <xsd:element name="User" type="UserType" minOccurs="0" maxOccurs="1" />
         </xsd:sequence>
@@ -797,6 +798,7 @@
           <xsd:element name="RevisionHistory" type="RevisionHistoryType" minOccurs="0" maxOccurs="1" />
           <xsd:element name="SessionTimeoutSeconds" type="xsd:long" minOccurs="0" maxOccurs="1" />
           <xsd:element name="StoryHierarchyEnabled" type="xsd:boolean" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="StoryHierarchyType" type="xsd:string" minOccurs="0" maxOccurs="1" />
           <xsd:element name="SubscriptionID" type="xsd:long" minOccurs="0" maxOccurs="1" />
           <xsd:element name="SubscriptionType" type="xsd:string" minOccurs="0" maxOccurs="1" />
           <xsd:element name="Workspaces" type="SubscriptionWorkspacesType" minOccurs="0" maxOccurs="1" />
