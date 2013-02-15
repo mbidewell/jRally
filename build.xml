@@ -25,6 +25,7 @@
 	<property name="docs.dir" location="docs"/>
 	<property name="schemas.dir" value="${config.dir}/main/schemas"/>
 	<property name="xsl.dir" value="${config.dir}/main/xslt"/>
+	<property name="schema.version" value="1.40"/>
 
 	<!--
 		This set of properties controls the locations of intermediate files.  These are used

@@ -5,9 +5,10 @@
 	<dependencies>
 
 		<dependency
-			org="org.junit"
+			org="junit"
 			name="junit"
-			rev="latest.release"/>
+			rev="latest.release"
+			conf="*->*, !sources, !javadoc"/>
 
 		<dependency
 			org="org.apache.log4j"
