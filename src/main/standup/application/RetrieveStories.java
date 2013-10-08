@@ -41,7 +41,7 @@ public abstract class RetrieveStories {
 	private String password = null;
 	private String storyFilename = null;
 	private String taskFilename = null;
-	private String debugPrefix = null;
+	private String debugPrefix = "test-output";
 
 	@SuppressWarnings("static-access")
 	protected Options buildOptions() {
@@ -111,8 +111,7 @@ public abstract class RetrieveStories {
 			return;
 		}
 
-		ServerConnection rallyServer = new ServerConnection(
-				Constants.RALLY_SERVER_NAME, new RallyClientFactory());
+		ServerConnection rallyServer = new ServerConnection();
 		rallyServer.setUsername(this.userName);
 		rallyServer.setPassword(this.password);
 		
@@ -182,7 +181,7 @@ public abstract class RetrieveStories {
 					"one of %s or %s is required", STORY_FILE_KEY, TASK_FILE_KEY));
 		}
 
-		this.debugPrefix = parsedCmdLine.getOptionValue(DEBUG_PREFIX_KEY, null);
+	//	this.debugPrefix = parsedCmdLine.getOptionValue(DEBUG_PREFIX_KEY, null);
 
 		return true;
 	}

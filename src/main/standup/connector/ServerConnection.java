@@ -2,6 +2,7 @@ package standup.connector;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 
 import javax.xml.bind.JAXBException;
@@ -26,8 +27,29 @@ public interface ServerConnection {
 	 * of iterations owned by the server.
 	 */
 	public class IterationStatus {
-		public String iterationName;
-		public URI iterationURI;
+		private String iterationName;
+		private URI iterationURI;
+		
+		public IterationStatus(String name, URI uri) {
+			setIterationName(name);
+			setIterationURI(uri);
+		}
+
+		public String getIterationName() {
+			return iterationName;
+		}
+
+		public void setIterationName(String iterationName) {
+			this.iterationName = iterationName;
+		}
+
+		public URI getIterationURI() {
+			return iterationURI;
+		}
+
+		public void setIterationURI(URI iterationURI) {
+			this.iterationURI = iterationURI;
+		}
 	}
 
  	/**
@@ -42,8 +64,7 @@ public interface ServerConnection {
  	 *         layer other than either a transport or IO layer failure
  	 */
  	public List<IterationStatus> listIterationsForProject(String projectName)
- 		throws IOException, JAXBException, ClientProtocolException,
- 		       ConnectorException;
+ 		throws IOException, ConnectorException, URISyntaxException;
 
  	/**
  	 * Retrieves the list of iterations that a user is involved in.
@@ -57,7 +78,7 @@ public interface ServerConnection {
  	 *         layer other than either a transport or IO layer failure
  	 */
  	public List<IterationStatus> listIterationsInvolvingUser(String userName)
-		throws IOException, ClientProtocolException, ConnectorException;
+		throws IOException, ConnectorException, URISyntaxException;
 
  	/**
  	 * Retrieve a list of stories for a named iteration.
@@ -81,8 +102,7 @@ public interface ServerConnection {
  	 *         transforming the backend result into the model.
  	 */
  	public StoryList retrieveStoriesForIteration(String iterationName)
- 		throws IOException, ClientProtocolException, ConnectorException,
- 		       TransformerException;
+ 		throws IOException, ConnectorException, TransformerException, URISyntaxException;
  	
  	/**
  	 * Retrieve a list of stories for a named iteration and project.
@@ -160,40 +180,5 @@ public interface ServerConnection {
  		throws IOException, ClientProtocolException, ConnectorException,
  		       TransformerException;
 
-	/**
-	 * Retrieve a resource and unmarshal it as a specified type.
-	 * 
-	 * This method retrieves the resource located at the specified URI.  The
-	 * response is handed off to JAXB and the result is coerced into the
-	 * requested type.
-	 * 
-	 * @param klass the class to coerce the response into
-	 * @param uri the URI to retrieve the resource from
-	 * 
-	 * @return the coerced instance
-	 * @throws ClientProtocolException
-	 *         thrown if retrieving the resource results in an HTTP error
-	 * @throws IOException
-	 *         thrown if a network error occurs while retrieving the resource
-	 * @throws UnexpectedResponseException
-	 *         thrown if the response cannot be unmarshalled as
-	 *         <code>klass</code>
- 	 * @throws TransformerException when an XSLT exception is thrown while
- 	 *         transforming the backend result into the model.
-	 */
-	public <T> T retrieveURI(Class<T> klass, URI uri)
-		throws ClientProtocolException, IOException, TransformerException,
-		       UnexpectedResponseException;
-
-	/**
-	 * Attempts a simple query to verify that the user credentials are correct.
-	 *  
-	 * @return true if the login succeeded, false otherwise
-	 * @throws ClientProtocolException
-	 *         thrown if retrieving the resource results in an HTTP error
-	 * @throws IOException
-	 *         thrown if a network error occurs while retrieving the resource
-	 */
-	public boolean login() throws ClientProtocolException, IOException;
 
 }
