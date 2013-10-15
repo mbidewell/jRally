@@ -124,10 +124,11 @@ public interface ServerConnection {
  	 *         layer other than either a transport or IO layer failure
  	 * @throws TransformerException when an XSLT exception is thrown while
  	 *         transforming the backend result into the model.
+ 	 * @throws URISyntaxException 
  	 */
  	public StoryList retrieveStoriesForProjectIteration(String project, String iterationName)
  		throws IOException, ClientProtocolException, ConnectorException,
- 		       TransformerException;
+ 		       TransformerException, URISyntaxException;
 
  	/**
  	 * Retrieve a list of stories by their backend identifier.
@@ -152,10 +153,11 @@ public interface ServerConnection {
  	 *         layer other than either a transport or IO layer failure
  	 * @throws TransformerException when an XSLT exception is thrown while
  	 *         transforming the backend result into the model.
+ 	 * @throws URISyntaxException 
  	 */
  	public StoryList retrieveStories(String[] stories)
  		throws IOException, ClientProtocolException, ConnectorException,
- 		       TransformerException;
+ 		       TransformerException, URISyntaxException;
 
  	/**
  	 * Fetch the tasks associated with a bunch of stories.
@@ -175,10 +177,11 @@ public interface ServerConnection {
  	 *         layer other than either a transport or IO layer failure
  	 * @throws TransformerException when an XSLT exception is thrown while
  	 *         transforming the backend result into the model.
+ 	 * @throws URISyntaxException 
  	 */
  	public TaskList retrieveTasks(StoryList stories)
  		throws IOException, ClientProtocolException, ConnectorException,
- 		       TransformerException;
+ 		       TransformerException, URISyntaxException;
 
 
 }
