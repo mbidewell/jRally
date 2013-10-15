@@ -242,7 +242,7 @@ public class ServerConnection
 				stories.getStory().addAll(storyList);
 			}
 			
-			if(storyResp.wasSuccessful()) {
+			if(defectResp.wasSuccessful()) {
 				List<StoryType> defectList = getStoryList(defectResp.getResults());
 				stories.getStory().addAll(defectList);
 			}
