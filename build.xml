@@ -15,7 +15,6 @@
 	-->
 	<property name="src.dir" location="src/main"/>
 	<property name="test.src.dir" location="src/test"/>
-	<property name="web.src.dir" location="src/web"/>
 	<property name="config.dir" location="configs"/>
 	<property name="web.rsrc.dir" value="${web.src.dir}/resources"/>
 	<property name="generated.src.dir" location="generated-src"/>
@@ -103,12 +102,6 @@
 	<target name="xml-sources"
 		description="===> generate JAXB sources from the schemas">
 		<mkdir dir="${generated.src.dir}"/>
-		<xjc schema="${schemas.dir}/rally-${schema.version}.xsd" target="2.0" removeOldOutput="true"
-			destdir="${generated.src.dir}" package="com.rallydev.xml">
-			<depends dir="${schemas.dir}" includes="rally-${schema.version}.xsd"/>
-			<produces dir="${generated.src.dir}/com/rallydev/xml" includes="**/*.java"/>
-			<arg value="-nv"/>
-		</xjc>
 		<xjc schema="${schemas.dir}/story-list.xsd" target="2.0" removeOldOutput="true"
 			destdir="${generated.src.dir}" package="standup.xml">
 			<depends dir="${schemas.dir}" includes="story-list.xsd"/>
@@ -164,7 +157,6 @@
 			<classpath>
 				<output path="${eclipse.build.dir}/classes"/>
 				<source path="${src.dir}"/>
-				<source path="${web.src.dir}" output="${eclipse.build.dir}/web"/>
 				<source path="${test.src.dir}" output="${eclipse.build.dir}/tests"/>
 				<source path="${generated.src.dir}" output="${eclipse.build.dir}/generated"/>
 				<library pathref="default.classpath"/>
@@ -181,7 +173,6 @@
 		<javac target="1.6" debug="true"
 			destdir="${classes.dir}" includeantruntime="false">
 			<src path="${src.dir}"/>
-			<src path="${web.src.dir}"/>
 			<src path="${generated.src.dir}"/>
 			<classpath refid="build.classpath"/>
 		</javac>
@@ -198,21 +189,6 @@
 		</jar>
 	</target>
 
-	<target name="war"
-		description="===> build a WAR of classes and their dependencies"
-		depends="compile">
-		<war destfile="${war.path}">
-			<webinf dir="${web.src.dir}/WEB-INF"/>
-			<zipfileset dir="${schemas.dir}" prefix="schemas"/>
-			<zipfileset dir="${xsl.dir}" prefix="xslt"/>
-			<zipfileset dir="${web.rsrc.dir}"/>
-			<classes dir="${classes.dir}"/>
-			<classes dir="${config.dir}/main" includes="*.properties"/>
-			<classes dir="${config.dir}/web" includes="*.properties"/>
-			<lib dir="${lib.dir}"/>
-			<lib dir="${ivy.lib.dir}"/>
-		</war>
-	</target>
 
 	<target name="compile-tests"
 		description="===> compile the test code"

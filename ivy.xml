@@ -3,13 +3,21 @@
 	<info organisation="com.schange" module="rally-tool"/>
 
 	<dependencies>
-
+		<dependency 
+			org="com.rallydev.rest" 
+			name="rally-rest-api" 
+			rev="latest.release"/>
 		<dependency
 			org="junit"
 			name="junit"
 			rev="latest.release"
 			conf="*->*, !sources, !javadoc"/>
 
+		<dependency
+			org="com.fasterxml"
+			name="jackson"
+			rev="2.1+"
+			conf="default"/>
 		<dependency
 			org="org.apache.log4j"
 			name="log4j"

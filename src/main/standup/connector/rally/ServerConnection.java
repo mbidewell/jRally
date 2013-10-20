@@ -7,6 +7,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -19,20 +20,18 @@ import javax.xml.bind.util.JAXBSource;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 
-import org.apache.commons.codec.EncoderException;
-import org.apache.commons.codec.net.URLCodec;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpResponse;
-import org.apache.http.StatusLine;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.Credentials;
-import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.impl.client.AbstractHttpClient;
 import org.apache.log4j.Logger;
 import org.apache.log4j.NDC;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.rallydev.rest.RallyRestApi;
+import com.rallydev.rest.request.QueryRequest;
+import com.rallydev.rest.response.QueryResponse;
+import com.rallydev.rest.util.Fetch;
+import com.rallydev.rest.util.QueryFilter;
 
 import standup.connector.ConnectorException;
 import standup.connector.DefaultHttpClientFactory;
@@ -42,17 +41,13 @@ import standup.utility.Utilities;
 import standup.xml.Description;
 import standup.xml.Links;
 import standup.xml.Links.Link;
+import standup.xml.ObjectFactory;
 import standup.xml.StoryList;
 import standup.xml.StoryType;
 import standup.xml.TaskList;
+import standup.xml.TaskType;
 import standup.xml.TopLevelObject;
 
-import com.rallydev.xml.ArtifactType;
-import com.rallydev.xml.DefectType;
-import com.rallydev.xml.DomainObjectType;
-import com.rallydev.xml.HierarchicalRequirementType;
-import com.rallydev.xml.QueryResultType;
-import com.rallydev.xml.TaskType;
 
 
 /**
@@ -63,17 +58,17 @@ import com.rallydev.xml.TaskType;
  */
 public class ServerConnection
 	implements standup.connector.ServerConnection,
-	           org.apache.http.client.CredentialsProvider,
 	           Serializable
 {
 	private static final long serialVersionUID = -4302496608447788915L;
+	private static final Logger logger = Logger.getLogger(ServerConnection.class);
 
-	static final String RALLY_SERVER_NAME = "rally1.rallydev.com";
+	static final String RALLY_SERVER_URL= "https://rally1.rallydev.com";
 	static final String RALLY_QUERY_REL = "Rally Query";
 	static final String RALLY_PARENT_URL_REL = "Parent URL";
 	static final String RALLY_OBJECT_URL_REL = "Object URL";
 
-	private static final Logger logger = Logger.getLogger(ServerConnection.class);
+
 	private static final Pattern ltPattern = Pattern.compile("&lt;");
 	private static final Pattern gtPattern = Pattern.compile("&gt;");
 	private static final Pattern ampPattern = Pattern.compile("&amp;");
@@ -81,560 +76,234 @@ public class ServerConnection
 	private static final Pattern brPattern = Pattern.compile("<br\\s*>");
 	private static final Pattern ampPattern2 = Pattern.compile("&");
 	private static final Pattern quotPattern = Pattern.compile("\"");
-
-	private String userName;
-	private String password;
-	private HttpHost host;
-	private final HttpClientFactory clientFactory;
+	
+	private ObjectFactory objFactory = new ObjectFactory();
 	private JAXBContext jaxb;
 	private Unmarshaller unmarshaller;
-	private final TransformerFactory xformFactory;
-	private final standup.xml.ObjectFactory standupFactory;
-
-	/**
-	 * Creates a server connection using the default Rally server instance
-	 * and a {@link DefaultHttpClientFactory} instance.
-	 */
+	
+	private String username;
+	private String password;
+	
 	public ServerConnection() {
-		this(RALLY_SERVER_NAME, new DefaultHttpClientFactory());
-		logger.info("created defaulted connection");
-	}
-
-	/**
-	 * Creates a server connection that connects to a specific Rally server.
-	 *
-	 * @param serverName the Rally server instance to connect to
-	 * @param clientFactory the factory to fetch HTTP clients from
-	 * 
-	 * @throws Error when the JAXB context cannot be created.  The underlying
-	 *         {@link JAXBException} is attached as the cause.
-	 */
-	public ServerConnection(String serverName, HttpClientFactory clientFactory) {
-		logger.info(String.format("initializing serverName=%s factory=%s",
-				serverName, clientFactory.toString()));
-		this.userName = "";
-		this.password = "";
-		this.host = new HttpHost(serverName, 443, "https");
-		this.clientFactory = clientFactory;
-		this.xformFactory = TransformerFactory.newInstance();
-		this.standupFactory = new standup.xml.ObjectFactory();
 		try {
-			this.jaxb = JAXBContext.newInstance("com.rallydev.xml:standup.xml");
+			this.jaxb = JAXBContext.newInstance("standup.xml");
 			this.unmarshaller = jaxb.createUnmarshaller();
 		} catch (JAXBException e) {
 			throw new Error("failed to initialize XML bindings", e);
 		}
 	}
-
-	/* (non-Javadoc)
-	 * @see standup.connector.ServerConnection#listIterationsForProject(java.lang.String)
-	 */
+	
 	@Override
-	public List<IterationStatus> listIterationsForProject(String project)
-		throws IOException, ClientProtocolException, ConnectorException
-	{
-		return retrieveIterationsByAttribute("Project.Name", project);
-	}
+	public List<IterationStatus> listIterationsForProject(String projectName)
+			throws IOException, ConnectorException, URISyntaxException {
+		List<IterationStatus> iterationList = new ArrayList<IterationStatus>();
+		RallyRestApi restApi = new RallyRestApi(new URI(RALLY_SERVER_URL), username, password);
 
-	/* (non-Javadoc)
-	 * @see standup.connector.ServerConnection#listIterationsInvolvingUser(java.lang.String)
-	 */
+		QueryRequest query = new QueryRequest("Iterations");
+
+		query.setFetch(new Fetch("Name"));
+		query.setQueryFilter(new QueryFilter("Project.Name", "=", "Adrenalin SeaDAC Renderer"));
+		
+		QueryResponse resp = restApi.query(query);
+		
+		for(JsonElement r : resp.getResults()) {
+			JsonObject result = r.getAsJsonObject();
+			iterationList.add(new IterationStatus(result.get("Name").getAsString(), new URI(result.get("_ref").getAsString())));
+		}
+		
+		restApi.close();
+		return iterationList;
+	}
 	@Override
 	public List<IterationStatus> listIterationsInvolvingUser(String userName)
-		throws IOException, ClientProtocolException, ConnectorException
-	{
-		return retrieveIterationsByAttribute("UserIterationCapacities.User.UserName", getUsername());
-	}
-
-	/**
-	 * Process a Rally <code>QueryResult</code> into a list of user stories.
-	 * <p>
-	 * This is used internally to process most responses.  It will do whatever
-	 * is necessary to build {@link StoryType} objects based on the possibly
-	 * abbreviated response.  Rally responses come in both abbreviated and
-	 * full responses.  This method contains the intelligence to handle either
-	 * response type and build complete object instances from.
-	 * <p>
-	 * A full response contains the full content of each object in the
-	 * response.  The <code>type</code> attribute of the object element
-	 * indicates the actual type of the element.
-	 * <p>
-	 * An abbreviated response only includes the object type, its name, and
-	 * a URI to retrieve the full contents from.  If an abbreviated response
-	 * is encountered, then a separate request is made to retrieve the full
-	 * representation.
-	 * 
-	 * @param stories list to place the user stories into.  Each story is
-	 *                added to the list by calling {@link StoryList#getStory()}
-	 *                and then calling {@link List#add(Object)} on the result.
-	 * @param result  the query result to process.
-	 * 
-	 * @throws ConnectorException when the {@code result} contains one or more
-	 *         errors.  Both errors and warnings will be logged and any errors
-	 *         result in this exception being generated.
-	 * @throws ClientProtocolException
-	 * @throws IOException
-	 * @throws URISyntaxException
-	 * @throws JAXBException
- 	 * @throws TransformerException when an XSLT exception is thrown while
- 	 *         transforming the backend result into the model.
-	 */
-	void processQueryResult(StoryList stories, QueryResultType result)
-		throws ClientProtocolException, IOException,
-		       URISyntaxException, JAXBException, TransformerException,
-		       ConnectorException
-	{
-		List<String> errors = result.getErrors().getOperationResultError();
-		if (errors.size() > 0) {
-			int errorCount = errors.size();
-			for (String err: errors) {
-				logger.error(err);
-			}
-			if (errorCount == 1) {
-				throw Utilities.generateException(ConnectorException.class,
-						"query resulted in a single error", errors.get(0));
-			}
-			throw Utilities.generateException(ConnectorException.class,
-					String.format("query resulted in %d errors", errorCount),
-					errors);
-		}
-		for (String warning: result.getWarnings().getOperationResultWarning()) {
-			logger.warn(warning);
-		}
-
-		com.rallydev.xml.ObjectFactory rallyFactory = new com.rallydev.xml.ObjectFactory();
-		List<DomainObjectType> domainObjects = result.getResults().getObject();
-		for (DomainObjectType domainObj: domainObjects) {
-			StoryType story = null;
-			ArtifactType artifact = null;
-			JAXBElement<? extends ArtifactType> obj = null;
-			String stringType = domainObj.getType();
-			if (stringType.equalsIgnoreCase("HierarchicalRequirement")) {
-				if (domainObj instanceof HierarchicalRequirementType) { // xsi:type in use!
-					obj = rallyFactory.createHierarchicalRequirement((HierarchicalRequirementType) domainObj);
-					artifact = (HierarchicalRequirementType) domainObj;
-				} else { // we need to fetch this explicitly
-					obj = retrieveJAXBElement(HierarchicalRequirementType.class, new URI(domainObj.getRef()));
-					artifact = obj.getValue();
-				}
-			} else if (stringType.equalsIgnoreCase("Defect")) {
-				if (domainObj instanceof DefectType) {
-					obj = rallyFactory.createDefect((DefectType) domainObj);
-					artifact = (DefectType) domainObj;
-				} else {
-					obj = retrieveJAXBElement(DefectType.class, new URI(domainObj.getRef()));
-					artifact = obj.getValue();
-				}
-			}
+			throws IOException, ConnectorException, URISyntaxException {
 	
-			if (artifact != null) {
-				story = this.transformResultInto(StoryType.class, obj);
-				story.setDescription(fixDescription(artifact));
-				addLink(story, obj.getValue().getRef(), RALLY_OBJECT_URL_REL);
-				stories.getStory().add(story);
-			} else {
-				logger.debug(String.format("ignoring DomainObject %d of type %s", domainObj.getObjectID(), stringType));
-			}
+		List<IterationStatus> iterationList = new ArrayList<IterationStatus>();
+		RallyRestApi restApi = new RallyRestApi(new URI(RALLY_SERVER_URL), username, password);
+
+		QueryRequest query = new QueryRequest("Iterations");
+
+		query.setFetch(new Fetch("Name"));
+		query.setQueryFilter(new QueryFilter("UserIterationCapacities.User.Name", "=", userName));
+		
+		QueryResponse resp = restApi.query(query);
+		
+		for(JsonElement r : resp.getResults()) {
+			JsonObject result = r.getAsJsonObject();
+			iterationList.add(new IterationStatus(result.get("Name").getAsString(), new URI(result.get("_ref").getAsString())));
 		}
+		
+		restApi.close();
+		return iterationList;
+		
+	}
+	@Override
+	public StoryList retrieveStoriesForIteration(String iterationName)
+			throws IOException,  ConnectorException,
+			TransformerException, URISyntaxException {
+		QueryFilter filter = new QueryFilter("Iteration.Name", "=", iterationName);
+		return this.retrieveStoriesByQuery(filter);
+	}
+	@Override
+	public StoryList retrieveStoriesForProjectIteration(String project,
+			String iterationName) throws IOException, ClientProtocolException, TransformerException, ConnectorException, URISyntaxException {
+		QueryFilter filter = QueryFilter.and(new QueryFilter("Project.Name", "=", project),
+											 new QueryFilter("Iteration.Name", "=", iterationName));
+		return this.retrieveStoriesByQuery(filter);
+	}
+	@Override
+	public StoryList retrieveStories(String[] stories) throws IOException,
+			ClientProtocolException, ConnectorException, TransformerException, URISyntaxException {
+		if(stories.length == 0) {
+			return objFactory.createStoryList();
+		}
+		QueryFilter filter = new QueryFilter("FormattedID", "=", stories[0]);
+		for(int i = 1; i < stories.length; i++) {
+			filter = filter.or(new QueryFilter("FormattedID", "=", stories[0]));
+		}
+	
+		return this.retrieveStoriesByQuery(filter);
+	}
+	@Override
+	public TaskList retrieveTasks(StoryList stories) throws IOException,
+			ClientProtocolException, ConnectorException, TransformerException, URISyntaxException {
+		RallyRestApi restApi = new RallyRestApi(new URI(RALLY_SERVER_URL), username, password);
+		QueryRequest taskQuery = new QueryRequest("Task");
+	
+		TaskList taskList = objFactory.createTaskList();
+		try {
+			for (StoryType story: stories.getStory()) {
+				String storyID = story.getIdentifier();
+				Link storyLink = findLinkByRel(story, RALLY_OBJECT_URL_REL);
+				if (storyLink != null) {
+					storyLink.setRel(RALLY_PARENT_URL_REL);
+				}
+			
+				NDC.push("retrieving tasks for "+ storyID);
+				logger.debug(NDC.peek());
+				QueryFilter filter = new QueryFilter("WorkProduct.FormattedID", "=", storyID);
+				taskQuery.setQueryFilter(filter);
+				QueryResponse query = restApi.query(taskQuery);
+				if(query.wasSuccessful()) {
+					for(JsonElement e : query.getResults()) {
+						if(e == null)
+							continue;
+						TaskType task = objFactory.createTaskType();
+						JsonObject jsonTask = e.getAsJsonObject();
+						String taskName = jsonTask.get("Name").getAsString();
+						
+						task.setParentIdentifier(storyID);
+						task.setDescription(fixDescription(getValueOrDefault(jsonTask.get("Description"), "")));
+						if(!jsonTask.get("Owner").isJsonNull()) {
+							task.setOwner(getValueOrDefault(jsonTask.get("Owner").getAsJsonObject().get("_refObjectName"), ""));
+						}
+						task.setFullName(taskName);
+						task.setShortName((taskName.length() > 30)? taskName.substring(0, 30) : taskName);
+						task.setIdentifier(jsonTask.get("FormattedID").getAsString());
+						task.setDetailedEstimate(getValueOrDefault(jsonTask.get("Estimate"), new Double(0.0)));
+						task.setTodoRemaining(getValueOrDefault(jsonTask.get("Estimate"), new Double(0.0)));
+						task.setEffortApplied(getValueOrDefault(jsonTask.get("Actuals"), new Double(0.0)));
+						task.setDescription(fixDescription(getValueOrDefault(jsonTask.get("Description"), "")));
+						addLink(story, jsonTask.get("_ref").getAsString(), RALLY_OBJECT_URL_REL);
+						
+						addLink(task, jsonTask.get("_ref").getAsString(), RALLY_OBJECT_URL_REL);
+						addLink(task, storyLink);
+						taskList.getTask().add(task);
+					}
+				}
+			}
+		}  finally {
+			NDC.pop();
+			restApi.close();
+		}
+		return taskList;
+	}
+	
+	
+	private StoryList retrieveStoriesByQuery(QueryFilter filter)
+			throws IOException,  ConnectorException,
+			TransformerException, URISyntaxException {
+		RallyRestApi restApi = new RallyRestApi(new URI(RALLY_SERVER_URL), username, password);
+
+		QueryRequest storyQuery = new QueryRequest("HierarchicalRequirement");
+		QueryRequest defectQuery = new QueryRequest("Defect");
+
+		StoryList stories = objFactory.createStoryList();
+		
+		try {
+			defectQuery.setQueryFilter(filter);
+			storyQuery.setQueryFilter(filter);
+			
+			QueryResponse storyResp = restApi.query(storyQuery);
+			QueryResponse defectResp = restApi.query(defectQuery);
+			
+			if(storyResp.wasSuccessful()) {
+				List<StoryType> storyList = getStoryList(storyResp.getResults());
+				stories.getStory().addAll(storyList);
+			}
+			
+			if(defectResp.wasSuccessful()) {
+				List<StoryType> defectList = getStoryList(defectResp.getResults());
+				stories.getStory().addAll(defectList);
+			}
+		} finally {
+			restApi.close();
+		}
+		return stories;
+	}	
+	public String getUsername() {
+		return username;
+	}
+	public void setUsername(String username) {
+		this.username = username;
+	}
+	public String getPassword() {
+		return password;
+	}
+	public void setPassword(String password) {
+		this.password = password;
 	}
 
-	/* (non-Javadoc)
-	 * @see standup.connector.ServerConnection#retrieveStories(java.lang.String[])
-	 */
-	@Override
-	public StoryList retrieveStories(String[] stories)
-		throws IOException, ClientProtocolException, ConnectorException,
-		       TransformerException
-	{
-		StoryList storyList = this.standupFactory.createStoryList();
-		String[] segments = new String[stories.length];
-		for (int index=0; index<stories.length; ++index) {
-			segments[index] = String.format("FormattedID = \"%s\"",
-					                        stories[index]);
-		}
 
-		try {
-			URI uri = buildQuery("artifact", "OR", segments);
-			QueryResultType result = retrieveURI(QueryResultType.class, uri);
-			processQueryResult(storyList, result);
-			addLink(storyList, uri.toString(), RALLY_QUERY_REL);
-		} catch (JAXBException e) {
-			logger.error("JAXB related error while retrieving multiple stories", e);
-		} catch (URISyntaxException e) {
-			logger.error(e.getClass().getCanonicalName(), e);
+	private List<StoryType> getStoryList(JsonArray jsonStories) {
+		List<StoryType> storyList = new ArrayList<StoryType>();
+
+		for(JsonElement e : jsonStories) {
+			if(e == null)
+				continue;
+			JsonObject jsonStory = e.getAsJsonObject();
+			StoryType story = objFactory.createStoryType();
+			String storyName = jsonStory.get("Name").getAsString();
+			if(!jsonStory.get("Owner").isJsonNull()) {
+				story.setOwner(getValueOrDefault(jsonStory.get("Owner").getAsJsonObject().get("_refObjectName"), ""));
+			}
+			story.setFullName(storyName);
+			story.setShortName((storyName.length() > 30)? storyName.substring(0, 30) : storyName);
+			story.setIdentifier(jsonStory.get("FormattedID").getAsString());
+			story.setEstimate(getValueOrDefault(jsonStory.get("PlanEstimate"), new Double(0.0)));
+			story.setDescription(fixDescription(getValueOrDefault(jsonStory.get("Description"), "")));
+			addLink(story, jsonStory.get("_ref").getAsString(), RALLY_OBJECT_URL_REL);
+			storyList.add(story);
+			
+			logger.info(String.format("%s - %s", jsonStory.get("FormattedID").getAsString(), storyName));
 		}
 		
 		return storyList;
 	}
 
-	/* (non-Javadoc)
-	 * @see standup.connector.ServerConnection#retrieveStoriesForIteration(java.lang.String)
-	 */
-	@Override
-	public StoryList retrieveStoriesForIteration(String iteration)
-		throws IOException, ClientProtocolException, ConnectorException,
-		       TransformerException
-	{
-		StoryList storyList = this.standupFactory.createStoryList();
-		try {
-			NDC.push("retrieving stories for iteration "+iteration);
-			QueryResultType result = doSimpleQuery("hierarchicalrequirement",
-					"Iteration.Name", iteration);
-			processQueryResult(storyList, result);
-			NDC.pop();
-
-			NDC.push("retrieving defects for iteration "+iteration);
-			result = doSimpleQuery("defect", "Iteration.Name", iteration);
-			processQueryResult(storyList, result);
-		} catch (JAXBException e) {
-			logger.error("JAXB related error while processing iteration "+iteration, e);
-		} catch (URISyntaxException e) {
-			logger.error(e.getClass().getCanonicalName(), e);
-		} finally {
-			NDC.pop();
+	@SuppressWarnings("unchecked")
+	private <T> T getValueOrDefault(JsonElement obj, T value) {
+		if (!obj.isJsonNull()) {
+			if(value instanceof String) {
+				return (T) obj.getAsString();
+			} else if (value instanceof Double) {
+				return (T) new Double(obj.getAsDouble());
+			}
 		}
-		return storyList;
+		return value;
 	}
 	
-
-	/* (non-Javadoc)
-	 * @see standup.connector.ServerConnection#retrieveStoriesForProjectIteration(java.lang.String, java.lang.String)
-	 */
-	@Override
-	public StoryList retrieveStoriesForProjectIteration(String project, String iteration)
-		throws IOException, ClientProtocolException, ConnectorException,
-		       TransformerException
-	{
-		StoryList storyList = this.standupFactory.createStoryList();
-		try {
-			NDC.push("retrieving stories for iteration "+iteration);
-			QueryResultType result = retrieveURI(QueryResultType.class,
-			           buildQuery("hierarchicalrequirement", "AND",
-			        		      String.format("Project.Name = \"%s\"", project),
-			        		      String.format("Iteration.Name = \"%s\"",iteration)));
-			
-			processQueryResult(storyList, result);
-			NDC.pop();
-
-			NDC.push("retrieving defects for iteration "+iteration);
-			result = retrieveURI(QueryResultType.class,
-			           buildQuery("defect", "AND",
-			        		      String.format("Project.Name = \"%s\"", project),
-			        		      String.format("Iteration.Name = \"%s\"",iteration)));			
-			processQueryResult(storyList, result);
-		} catch (JAXBException e) {
-			logger.error("JAXB related error while processing iteration "+iteration, e);
-		} catch (URISyntaxException e) {
-			logger.error(e.getClass().getCanonicalName(), e);
-		} finally {
-			NDC.pop();
-		}
-		return storyList;
-	}
-
-	/* (non-Javadoc)
-	 * @see standup.connector.ServerConnection#retrieveTasks(standup.xml.StoryList)
-	 */
-	@Override
-	public TaskList retrieveTasks(StoryList stories)
-		throws IOException, ClientProtocolException, ConnectorException,
-		       TransformerException
-	{
-		TaskList taskList = this.standupFactory.createTaskList();
-		for (StoryType story: stories.getStory()) {
-			String storyID = story.getIdentifier();
-			Link storyLink = findLinkByRel(story, RALLY_OBJECT_URL_REL);
-			if (storyLink != null) {
-				storyLink.setRel(RALLY_PARENT_URL_REL);
-			}
-			try {
-				NDC.push("retrieving tasks for "+story.getIdentifier());
-				logger.debug(NDC.peek());
-				QueryResultType result = doSimpleQuery("task", "WorkProduct.FormattedID", storyID);
-				for (DomainObjectType domainObj: result.getResults().getObject()) {
-					JAXBElement<TaskType> taskObj = this.retrieveJAXBElement(TaskType.class, new URI(domainObj.getRef()));
-					standup.xml.TaskType task = this.transformResultInto(standup.xml.TaskType.class, taskObj);
-					task.setParentIdentifier(storyID);
-					addLink(task, taskObj.getValue().getRef(), RALLY_OBJECT_URL_REL);
-					addLink(task, storyLink);
-					taskList.getTask().add(task);
-				}
-			} catch (JAXBException e) {
-				logger.error("JAXB related error while processing story "+storyID, e);
-			} catch (URISyntaxException e) {
-				logger.error(e.getClass().getCanonicalName(), e);
-			} finally {
-				NDC.pop();
-			}
-		}
-		return taskList;
-	}
-
-	/**
-	 * Stores the user name that is sent to the server in response to
-	 * an authorization challenge.  The user name is conventionally the email
-	 * address of the user.
-	 * 
-	 * @param userName the name to present to the server when challenged.
-	 */
-	public void setUsername(String userName) {
-		this.userName = userName;
-	}
-	public String getUsername() {
-		return userName;
-	}
-
-	/**
-	 * Stores the password that is sent to the server in response to
-	 * an authentication challenge.
-	 * 
-	 * @param password the password to present to the server when challenged.
-	 */
-	public void setPassword(String password) {
-		this.password = password;
-	}
-	public String getPassword() {
-		return password;
-	}
-
-	public void setServerName(String serverName) {
-		this.host = new HttpHost(serverName, 443, "https");
-	}
-	public String getServerName() {
-		return this.host.getHostName();
-	}
-
-	//=========================================================================
-	// CredentialsProvider implementation
-	//
-	/* (non-Javadoc)
-	 * @see org.apache.http.client.CredentialsProvider#clear()
-	 */
-	@Override
-	public void clear() {
-		this.userName = "";
-		this.password = "";
-	}
-
-	/* (non-Javadoc)
-	 * @see org.apache.http.client.CredentialsProvider#getCredentials(org.apache.http.auth.AuthScope)
-	 */
-	@Override
-	public Credentials getCredentials(AuthScope scope) {
-		return new UsernamePasswordCredentials(this.userName, this.password);
-	}
-
-	/* (non-Javadoc)
-	 * @see org.apache.http.client.CredentialsProvider#setCredentials(org.apache.http.auth.AuthScope, org.apache.http.auth.Credentials)
-	 */
-	@Override
-	public void setCredentials(AuthScope scope, Credentials credentials) {
-		setUsername(credentials.getUserPrincipal().getName());
-		setPassword(credentials.getPassword());
-	}
-
-	/* (non-Javadoc)
-	 * @see standup.connector.ServerConnection#retrieveURI(java.lang.Class, java.net.URI)
-	 */
-	@Override
-	public <T> T retrieveURI(Class<T> klass, URI uri)
-		throws ClientProtocolException, IOException, UnexpectedResponseException
-	{
-		JAXBElement<T> jaxbElm = retrieveJAXBElement(klass, uri);
-		return jaxbElm.getValue();
-	}
-
-	/* (non-Javadoc)
-	 * @see standup.connector.ServerConnection#login()
-	 */
-	@Override
-	public boolean login() throws ClientProtocolException, IOException {
-		try {
-			doSimpleQuery("user", "UserName", getUsername());
-			return true;
-		} catch (UnexpectedResponseException e) {
-			logger.error("simple query failed, assuming a login failure", e);
-		}
-		return false;
-	}
-
-	//=========================================================================
-	// Internal utility methods
-	//
-
-	/**
-	 * Constructs a URI query according to the Rally Grammar.
-	 * <p>
-	 * Rally queries are essentially <code>Attribute OPERATOR Value</code>
-	 * triples strung together with AND and OR.  The expression is fully
-	 * parenthesized according to a very specific grammar described on
-	 * <a href="https://rally1.rallydev.com/slm/doc/webservice/introduction.jsp">
-	 * Rally's Web Service API Introduction</a>.
-	 * <p>
-	 * This method receives the query contents as a list of segments where
-	 * each segment is of the form <code><i>Name</i> <i>op</i> <i>Value</i>
-	 * </code>. The caller is required to insert quotes around <i>Value</i>
-	 * as needed. The Rally query syntax requires double quotes if the value
-	 * contains spaces.  The best bet is to always include them.
-	 * <p>
-	 * The <code>joiner</code> parameter specifies the Boolean operator that
-	 * is used to string together the individual expressions.  The only
-	 * supported operators are <code>AND</code> and <code>OR</code>.
-	 * 
-	 * @param objectType    the type of object to query for
-	 * @param joiner        the operation to join the query segments using
-	 * @param querySegments a list of primitive <code>"name op value"</code>
-	 *                      strings.  See the Rally documentation for supported
-	 *                      names and operators.
-	 * 
-	 * @return the query represented as a Rally URI
-	 * 
-	 * @throws MalformedURLException when a URI object cannot be created using
-	 *         the constructed query
-	 */
-	URI buildQuery(String objectType, String joiner, String... querySegments)
-		throws MalformedURLException
-	{
-		// The most difficult part of the query syntax is the
-		// parenthesization.  The query syntax is quite rigid in that all
-		// queries are of the form `(LEFT OP RIGHT)` where `LEFT` and `RIGHT`
-		// are either single tokens or full parenthesized expressions.  If
-		// either of the expressions are parenthesized, then both must be.
-		//
-		// So... what follows is an interesting algorithm that builds fully
-		// parenthesized expressions.  Since Java does not include any useful
-		// mechanism for creating strings of repeated characters or building
-		// a string by appending and prefixing a single buffer, we use to
-		// string builders - one for the leading series of parenthesis and
-		// another for the actual query.
-		String separator = String.format(" %s (", joiner);
-		StringBuilder prefixBuilder = new StringBuilder();
-		StringBuilder builder = new StringBuilder();
-		int index = 0;
-
-		prefixBuilder.append("(");
-		builder.append(querySegments[index++]).append(")");
-		while (index < querySegments.length) {
-			prefixBuilder.append("(");
-			builder.append(separator).append(querySegments[index++]).append("))");
-		}
-		String query = prefixBuilder.toString() + builder.toString();
-		String path = Utilities.join("/", Constants.RALLY_BASE_RESOURCE,
-				Constants.RALLY_API_VERSION, objectType);
-		try {
-			URLCodec codec = new URLCodec("US-ASCII");
-			return Utilities.createURI(this.host, path,
-					"query="+codec.encode(query));
-		} catch (EncoderException e) {
-			throw Utilities.generateException(MalformedURLException.class, e,
-					"failed to encode URL", "object type", objectType,
-					"query was", query);
-		} catch (URISyntaxException e) {
-			throw Utilities.generateException(MalformedURLException.class, e,
-					"failed to build URL", "object type", objectType,
-					"query was", query);
-		}
-	}
-
-	QueryResultType doSimpleQuery(String objectType, String attributeName, String attributeValue)
-		throws ClientProtocolException, UnexpectedResponseException, MalformedURLException, IOException
-	{
-		return retrieveURI(QueryResultType.class,
-				           buildQuery(objectType, "AND",
-				        		     String.format("%s = \"%s\"",
-				        		    		       attributeName, attributeValue)));
-	}
-
-	<T> JAXBElement<T> retrieveJAXBElement(Class<T> klass, URI uri)
-		throws ClientProtocolException, IOException, UnexpectedResponseException
-	{
-		logger.debug(String.format("retrieving %s from %s", klass.toString(), uri.toString()));
-		HttpUriRequest get = clientFactory.getRequestObject("GET", uri);
-		AbstractHttpClient httpClient = clientFactory.getHttpClient(this);
-		HttpResponse response = httpClient.execute(host, get);
-		StatusLine status = response.getStatusLine();
-		if (status.getStatusCode() == 200) {
-			HttpEntity entity = response.getEntity();
-			try {
-				JAXBElement<?> responseObj = (JAXBElement<?>) unmarshaller.unmarshal(entity.getContent());
-				if (responseObj.getDeclaredType() == klass) {
-					@SuppressWarnings("unchecked")
-					JAXBElement<T> elm = (JAXBElement<T>) responseObj;
-					return elm;
-				} else {
-					throw Utilities.generateException(UnexpectedResponseException.class,
-							"unexpected response type", "expected", klass.toString(),
-							"got", responseObj.getDeclaredType().toString());
-				}
-			} catch (JAXBException e) {
-				throw Utilities.generateException(UnexpectedResponseException.class, e,
-						"failed to unmarshal response");
-			}
-		} else {
-			String msg = String.format("request for '%s' failed: %d %s",
-					uri.toString(), status.getStatusCode(), status.getReasonPhrase());
-			throw new ClientProtocolException(msg);
-		}
-	}
-
-	/**
-	 * Retrieve an iteration list based on a simple attribute=value query.
-	 * 
-	 * @param attributeName the attribute to query by.
-	 * @param attributeValue the value of the attribute to match.
-	 * @return a list of {@link IterationStatus} instances for matching iterations.
-	 * 
-	 * @throws ClientProtocolException
-	 * @throws UnexpectedResponseException
-	 * @throws MalformedURLException
-	 * @throws IOException
-	 */
-	private List<IterationStatus> retrieveIterationsByAttribute(String attributeName, String attributeValue)
-			throws ClientProtocolException, UnexpectedResponseException, MalformedURLException, IOException
-	{
-		QueryResultType result = doSimpleQuery("iteration", attributeName, attributeValue);
-		ArrayList<IterationStatus> iterations = new ArrayList<IterationStatus>(
-				Math.min(result.getPageSize().intValue(),
-						 result.getTotalResultCount().intValue()));
-		for (DomainObjectType domainObj : result.getResults().getObject()) {
-			IterationStatus iterStatus = new IterationStatus();
-			iterStatus.iterationName = domainObj.getRefObjectName();
-			try {
-				iterStatus.iterationURI = new URI(domainObj.getRef());
-			} catch (URISyntaxException e) {
-				logger.error(String.format("iteration %s has invalid URI %s",
-						iterStatus.iterationName, domainObj.getRef()), e);
-				iterStatus.iterationURI = null;
-			}
-			iterations.add(iterStatus);
-		}
-		return iterations;
-	}
-
-	<T,U> U transformResultInto(Class<U> klass, T result)
-		throws JAXBException, TransformerException, UnexpectedResponseException
-	{
-		JAXBResult resultDoc = Utilities.runXSLT(new JAXBResult(this.jaxb),
-				"xslt/rally.xsl", logger, new JAXBSource(this.jaxb, result),
-				this.xformFactory);
-		Object resultObj = resultDoc.getResult();
-		String resultType = resultObj.getClass().toString();
-		if (resultObj instanceof JAXBElement<?>) {
-			JAXBElement<?> elm = (JAXBElement<?>) resultObj;
-			if (elm.getDeclaredType() == klass) {
-				@SuppressWarnings("unchecked")
-				U outputObj = (U) elm.getValue();
-				return outputObj;
-			}
-			resultType = elm.getDeclaredType().toString();
-		}
-		throw Utilities.generateException(UnexpectedResponseException.class,
-				"unexpected response type", "expected", klass.toString(),
-				"got",resultType);
-	}
-
-	Description fixDescription(ArtifactType artifact) {
-		String descString = artifact.getDescription();
+	Description fixDescription(String descString) {
 		descString = ltPattern.matcher(descString).replaceAll("<");		// &lt; -> "<"
 		descString = gtPattern.matcher(descString).replaceAll(">");		// &gt; -> ">"
 		descString = ampPattern.matcher(descString).replaceAll("&");	// necessary to catch &nbsp;
@@ -642,6 +311,7 @@ public class ServerConnection
 		descString = brPattern.matcher(descString).replaceAll("<br/>");	// <br> -> <br/>
 		descString = quotPattern.matcher(descString).replaceAll("\"");	// &quot; -> "
 		descString = ampPattern2.matcher(descString).replaceAll("&amp;"); // & -> &amp;
+		
 		descString = String.format("<description>%s</description>", descString);
 
 		try {
@@ -652,11 +322,12 @@ public class ServerConnection
 		} catch (JAXBException e) {
 			logger.error("failed to unmarshal description <<"+descString+">>", e);
 		}
-		return this.standupFactory.createDescription();
+		return objFactory.createDescription();
+		
 	}
 
 	private void addLink(TopLevelObject obj, String linkURI, String linkRel) {
-		Link l = this.standupFactory.createLinksLink();
+		Link l = objFactory.createLinksLink();
 		l.setOwner(this.getClass().getCanonicalName());
 		l.setValue(linkURI);
 		l.setRel(linkRel);
@@ -666,7 +337,7 @@ public class ServerConnection
 	private void addLink(TopLevelObject obj, Link l) {
 		if (l != null) {
 			if (obj.getLinks() == null) {
-				obj.setLinks(this.standupFactory.createLinks());
+				obj.setLinks(objFactory.createLinks());
 			}
 			obj.getLinks().getLink().add(l);
 		}
@@ -677,7 +348,7 @@ public class ServerConnection
 		if (links != null) {
 			for (Link l: links.getLink()) {
 				if (l.getRel().equalsIgnoreCase(linkRel)) {
-					Link cloned = this.standupFactory.createLinksLink();
+					Link cloned = objFactory.createLinksLink();
 					cloned.setOwner(l.getOwner());
 					cloned.setRel(l.getRel());
 					cloned.setValue(l.getValue());
@@ -687,5 +358,5 @@ public class ServerConnection
 		}
 		return null;
 	}
-
+	
 }
